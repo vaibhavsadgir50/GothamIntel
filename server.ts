@@ -1,7 +1,6 @@
 import "dotenv/config";
 import express from "express";
 import path from "path";
-import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import { buildAreaDossier, type PlaceWithReviews } from "./server/googlePlaces";
@@ -17,9 +16,6 @@ import listingsRoutes from "./server/listingsRoutes";
 import hostRoutes from "./server/hostRoutes";
 import messagesRoutes from "./server/messagesRoutes";
 import inquiriesRoutes from "./server/inquiriesRoutes";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Initialize Gemini AI client
 const geminiApiKey = process.env.GEMINI_API_KEY || "";

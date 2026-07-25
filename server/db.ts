@@ -2,11 +2,16 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const DATA_DIR = path.join(__dirname, "..", "data");
+// esbuild bundles this to CJS for production, where import.meta.url is empty
+// (esbuild warns and strips it) but the CJS module wrapper's native __dirname
+// exists; tsx runs this file as ESM in dev, where __dirname doesn't exist but
+// import.meta.url does. Naming this the same as __dirname would shadow it and
+// hit the TDZ, so it's kept as a separate constant.
+const moduleDir: string =
+  typeof __dirname !== "undefined" ? __dirname : path.dirname(fileURLToPath(import.meta.url));
+const DATA_DIR = path.join(moduleDir, "..", "data");
 const DB_PATH = path.join(DATA_DIR, "platform-db.json");
-const SEED_LISTINGS_PATH = path.join(__dirname, "..", "src", "data", "listings.json");
+const SEED_LISTINGS_PATH = path.join(moduleDir, "..", "src", "data", "listings.json");
 
 export type UserRole = "seeker" | "host";
 export type InquiryStatus = "pending" | "accepted" | "declined";
