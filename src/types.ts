@@ -1,3 +1,6 @@
+export type UserRole = 'seeker' | 'host';
+export type InquiryStatus = 'pending' | 'accepted' | 'declined';
+
 export interface CrimeData {
   assault: number;
   petit_larceny: number;
@@ -28,7 +31,7 @@ export interface Listing {
   galleryImages: string[];
   aiRating: number;
   aiRatingBreakdown: AIRatingBreakdown;
-  source: 'StreetEasy' | 'Zillow' | 'Apartments.com';
+  source: 'StreetEasy' | 'Zillow' | 'Apartments.com' | 'Gotham Host';
   sourceUrl: string;
   youtube_search_term: string;
   google_place_id: string;
@@ -38,6 +41,66 @@ export interface Listing {
   subway_lines: string[];
   train_alert: string | null;
   vibe_tags: string[];
+  hostId?: string;
+  pricePerMonth?: number;
+  availableFrom?: string;
+  availableTo?: string;
+  description?: string;
+  images?: string[];
+  views?: number;
+  createdAt?: string;
+  active?: boolean;
+}
+
+export interface Inquiry {
+  id: string;
+  listingId: string;
+  listingTitle: string;
+  hostId: string;
+  seekerId: string;
+  seekerName: string;
+  seekerEmail: string;
+  seekerWorkplace?: string;
+  message: string;
+  status: InquiryStatus;
+  conversationId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  listingId: string;
+  listingTitle: string;
+  inquiryId?: string;
+  hostId: string;
+  hostName: string;
+  seekerId: string;
+  seekerName: string;
+  lastMessageAt: string;
+  lastMessagePreview: string;
+}
+
+export interface DirectMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderRole: UserRole;
+  senderName: string;
+  text: string;
+  createdAt: string;
+}
+
+export interface HostStats {
+  totalViews: number;
+  activeInquiries: number;
+  totalInquiries: number;
+  conversionRate: number;
+  activeListings: number;
+  topWorkplaces: { workplace: string; count: number }[];
+  neighborhoodViews: Record<string, number>;
+  acceptedCount: number;
+  declinedCount: number;
 }
 
 export interface SassyIntel {
