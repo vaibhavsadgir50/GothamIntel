@@ -1,7 +1,6 @@
 import "dotenv/config";
 import express from "express";
 import path from "path";
-import fs from "fs";
 import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
@@ -12,19 +11,15 @@ import {
   runStampImageAgent,
   type AreaProfile,
 } from "./server/agentHarness";
+import { getAllListings, getListingById } from "./server/db";
+import authRoutes from "./server/authRoutes";
+import listingsRoutes from "./server/listingsRoutes";
+import hostRoutes from "./server/hostRoutes";
+import messagesRoutes from "./server/messagesRoutes";
+import inquiriesRoutes from "./server/inquiriesRoutes";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Load listings data
-const listingsPath = path.join(__dirname, "src", "data", "listings.json");
-let listingsData = [];
-try {
-  const raw = fs.readFileSync(listingsPath, "utf-8");
-  listingsData = JSON.parse(raw);
-} catch (err) {
-  console.error("Error reading listings.json:", err);
-}
 
 // Initialize Gemini AI client
 const geminiApiKey = process.env.GEMINI_API_KEY || "";
@@ -111,25 +106,18 @@ async function startServer() {
 
   app.use(express.json({ limit: "25mb" }));
 
-  // API Route: Get all listings
-  app.get("/api/listings", (req, res) => {
-    res.json(listingsData);
-  });
-
-  // API Route: Get single listing by ID
-  app.get("/api/listings/:id", (req, res) => {
-    const listing = listingsData.find((l: any) => l.id === req.params.id);
-    if (!listing) {
-      return res.status(404).json({ error: "Listing not found" });
-    }
-    res.json(listing);
-  });
+  // Auth + RBAC platform APIs
+  app.use("/api/auth", authRoutes);
+  app.use("/api/listings", listingsRoutes);
+  app.use("/api/host", hostRoutes);
+  app.use("/api/messages", messagesRoutes);
+  app.use("/api/inquiries", inquiriesRoutes);
 
   // API Route: Real AI Agent Property Chat Assistant
   app.post("/api/chat", async (req, res) => {
     try {
       const { listingId, message, history = [] } = req.body;
-      const listing = listingsData.find((l: any) => l.id === listingId);
+      const listing = getListingById(listingId);
 
       if (!message || !message.trim()) {
         return res.status(400).json({ error: "Message is required" });
@@ -331,6 +319,8 @@ INSTRUCTIONS:
         }
       }
 
+      const listingsData = getAllListings();
+
       // Filter listings based on extracted keywords, price, borough
       let filtered = listingsData.filter((listing: any) => {
         // Price check
@@ -390,7 +380,7 @@ INSTRUCTIONS:
   // API Route: Sassy New Yorker Neighborhood Intel
   app.get("/api/neighborhood-intel/:id", async (req, res) => {
     try {
-      const listing = listingsData.find((l: any) => l.id === req.params.id);
+      const listing = getListingById(req.params.id);
       if (!listing) {
         return res.status(404).json({ error: "Listing not found" });
       }
@@ -542,7 +532,7 @@ Please provide JSON with these exact fields:
   // reviews synthesized by the Area Research Agent (cheap Gemini model).
   app.get("/api/area-intel/:id", async (req, res) => {
     try {
-      const listing = listingsData.find((l: any) => l.id === req.params.id);
+      const listing = getListingById(req.params.id);
       if (!listing) {
         return res.status(404).json({ error: "Listing not found" });
       }
@@ -594,7 +584,7 @@ Please provide JSON with these exact fields:
   // step in the pipeline; pass { "regenerate": true } to force a fresh stamp.
   app.post("/api/area-stamp/:id", async (req, res) => {
     try {
-      const listing = listingsData.find((l: any) => l.id === req.params.id);
+      const listing = getListingById(req.params.id);
       if (!listing) {
         return res.status(404).json({ error: "Listing not found" });
       }

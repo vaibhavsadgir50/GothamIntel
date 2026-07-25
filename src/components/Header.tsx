@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bookmark, Sparkles, Train, Shield, Radio, MapPin, User as UserIcon, LogOut, LogIn, ChevronDown } from 'lucide-react';
+import { Bookmark, Sparkles, MapPin, User as UserIcon, LogOut, LogIn, ChevronDown } from 'lucide-react';
 import { Listing } from '../types';
 import { useAuth } from '../context/AuthContext';
 
@@ -24,74 +24,45 @@ export const Header: React.FC<HeaderProps> = ({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-black/40 backdrop-blur-md border-b border-white/10 shadow-2xl">
-      {/* MTA Live Ticker Bar */}
-      <div className="bg-black/60 border-b border-white/5 px-4 py-1.5 text-xs text-neutral-300 flex items-center justify-between overflow-hidden">
-        <div className="flex items-center gap-3 animate-pulse shrink-0">
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono font-bold text-[10px] uppercase">
-            <Radio className="w-3 h-3 text-emerald-400" />
-            VIBE_ANALYZER: ONLINE
+    <header className="sticky top-0 z-40 w-full bg-white/85 backdrop-blur-md border-b border-slate-200/80">
+      <div className="bg-teal-50/80 border-b border-teal-100 px-4 py-1.5 text-xs text-slate-600 flex items-center justify-between overflow-hidden">
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-white text-teal-700 border border-teal-100 font-semibold text-[10px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+            Live NYC listings
           </span>
-          <span className="hidden sm:inline font-mono text-[11px] text-neutral-400">
-            SYSTEM STATUS: 24/7 MULTIMODAL GEMINI SCANNER ACTIVE
+          <span className="hidden sm:inline text-[11px] text-slate-500">
+            Friendly neighborhood intel for your next place
           </span>
         </div>
-
-        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar font-mono text-[11px] whitespace-nowrap text-neutral-300">
-          <span className="inline-flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 flex items-center justify-center text-[8px] font-bold text-white">A</span>
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 flex items-center justify-center text-[8px] font-bold text-white">C</span>
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 flex items-center justify-center text-[8px] font-bold text-white">E</span>
-            <span className="text-emerald-400 font-bold">NORMAL</span>
-          </span>
-          <span className="text-neutral-600">•</span>
-          <span className="inline-flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 flex items-center justify-center text-[8px] font-bold text-black">N</span>
-            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 flex items-center justify-center text-[8px] font-bold text-black">W</span>
-            <span className="text-emerald-400 font-bold">GOOD SERVICE</span>
-          </span>
+        <div className="flex items-center gap-2 text-[11px] text-slate-500 whitespace-nowrap">
+          <span className="hidden sm:inline">{activeListingsCount} homes ready</span>
         </div>
       </div>
 
-      {/* Main Header Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
-        {/* Brand Logo & Title */}
-        <div className="flex items-center gap-3.5">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)] text-black font-black text-xl select-none">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-teal-600 text-white font-display font-bold text-lg select-none">
             G
           </div>
-
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tighter uppercase italic text-white font-sans">
-                GOTHAM<span className="text-emerald-400">INTEL</span>
-              </h1>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-bold tracking-wider uppercase">
-                NYC 2026
-              </span>
-            </div>
-            <p className="text-xs text-neutral-400 font-mono hidden sm:block">
-              Multimodal AI Real Estate & Sassy Neighborhood Intelligence
+            <h1 className="text-xl sm:text-2xl font-display font-bold tracking-tight text-slate-800">
+              Gotham<span className="text-teal-600">Intel</span>
+            </h1>
+            <p className="text-xs text-slate-500 hidden sm:block">
+              Find a cozy NYC sublet — or host yours
             </p>
           </div>
         </div>
 
-        {/* View Toggle & Saved Drawer CTA */}
-        <div className="flex items-center gap-2.5">
-          {/* Active Results Counter */}
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs text-neutral-300 font-mono">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>{activeListingsCount} LISTINGS</span>
-          </div>
-
-          {/* Grid vs Map View Toggle */}
-          <div className="flex items-center bg-white/5 p-1 rounded-xl border border-white/10">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl">
             <button
               onClick={() => onSelectViewMode('grid')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                 viewMode === 'grid'
-                  ? 'bg-emerald-500 text-black font-bold shadow-[0_0_15px_rgba(16,185,129,0.3)]'
-                  : 'text-neutral-400 hover:text-white'
+                  ? 'bg-white text-teal-700 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
@@ -99,75 +70,70 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
             <button
               onClick={() => onSelectViewMode('map')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                 viewMode === 'map'
-                  ? 'bg-emerald-500 text-black font-bold shadow-[0_0_15px_rgba(16,185,129,0.3)]'
-                  : 'text-neutral-400 hover:text-white'
+                  ? 'bg-white text-teal-700 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <MapPin className="w-3.5 h-3.5" />
-              <span>Map Radar</span>
+              <span>Map</span>
             </button>
           </div>
 
-          {/* Bookmarked / Saved Listings Button */}
           <button
             onClick={onOpenSavedDrawer}
-            className="relative px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 hover:border-emerald-400/50 text-white text-xs font-semibold flex items-center gap-2 transition-all group"
+            className="relative px-3 py-2 rounded-xl bg-white border border-slate-200 hover:border-teal-300 text-slate-700 text-xs font-semibold flex items-center gap-2 transition-all"
           >
-            <Bookmark className="w-4 h-4 text-emerald-400 fill-emerald-400/20 group-hover:scale-110 transition-transform" />
+            <Bookmark className="w-4 h-4 text-teal-600" />
             <span className="hidden sm:inline">Saved</span>
             {savedListings.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-emerald-400 text-neutral-950 text-[10px] font-extrabold font-mono">
+              <span className="min-w-5 h-5 px-1.5 rounded-lg bg-teal-600 text-white text-[10px] font-bold flex items-center justify-center">
                 {savedListings.length}
               </span>
             )}
           </button>
 
-          {/* User Auth Control */}
           {user ? (
             <div className="relative">
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-mono font-bold transition-all"
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-semibold transition-all"
               >
                 <img
                   src={user.avatarUrl}
                   alt={user.name}
-                  className="w-6 h-6 rounded-full border border-emerald-400/50 bg-neutral-800"
+                  className="w-6 h-6 rounded-full bg-slate-100"
                 />
                 <span className="hidden md:inline max-w-[100px] truncate">{user.name}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
 
-              {/* User Dropdown */}
               {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-56 bg-neutral-950 border border-white/15 rounded-2xl shadow-2xl p-2 z-50 animate-fadeIn space-y-1">
-                  <div className="p-2.5 border-b border-white/10">
-                    <p className="text-xs font-bold text-white truncate">{user.name}</p>
-                    <p className="text-[10px] font-mono text-emerald-400 truncate">{user.email}</p>
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-lg p-2 z-50 animate-fadeIn space-y-1">
+                  <div className="p-2.5 border-b border-slate-100">
+                    <p className="text-xs font-bold text-slate-800 truncate">{user.name}</p>
+                    <p className="text-[10px] text-teal-700 truncate">{user.email}</p>
                   </div>
-
                   <button
                     onClick={() => {
                       setShowProfileMenu(false);
                       onOpenSavedDrawer();
                     }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-mono text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2 transition-all"
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50 flex items-center gap-2"
                   >
-                    <Bookmark className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>My Shortlist ({user.savedListingIds.length})</span>
+                    <Bookmark className="w-3.5 h-3.5 text-teal-600" />
+                    <span>My shortlist ({user.savedListingIds.length})</span>
                   </button>
-
                   <button
                     onClick={() => {
                       setShowProfileMenu(false);
                       logout();
                     }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-mono text-rose-400 hover:bg-rose-950/40 flex items-center gap-2 transition-all"
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2"
                   >
                     <LogOut className="w-3.5 h-3.5" />
-                    <span>Log Out</span>
+                    <span>Log out</span>
                   </button>
                 </div>
               )}
@@ -176,18 +142,17 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => onOpenAuthModal('login')}
-                className="px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold transition-all flex items-center gap-1.5"
+                className="px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 hover:border-teal-300"
               >
                 <LogIn className="w-3.5 h-3.5" />
-                <span>Log In</span>
+                <span>Log in</span>
               </button>
-
               <button
                 onClick={() => onOpenAuthModal('signup')}
-                className="hidden sm:flex px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-mono font-extrabold shadow-[0_0_12px_rgba(16,185,129,0.3)] transition-all items-center gap-1.5"
+                className="hidden sm:flex px-3 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition-all items-center gap-1.5"
               >
                 <UserIcon className="w-3.5 h-3.5" />
-                <span>Sign Up</span>
+                <span>Sign up</span>
               </button>
             </div>
           )}

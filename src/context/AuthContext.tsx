@@ -1,27 +1,41 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { UserRole } from '../types';
 
 export interface User {
   id: string;
   email: string;
   name: string;
   avatarUrl: string;
+  role: UserRole;
+  companyName?: string;
+  bio?: string;
   savedListingIds: string[];
   createdAt: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  signup: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  token: string | null;
+  isLoading: boolean;
+  signup: (payload: {
+    email: string;
+    password: string;
+    name: string;
+    role?: UserRole;
+    companyName?: string;
+    bio?: string;
+  }) => Promise<{ success: boolean; error?: string; user?: User }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; user?: User }>;
   logout: () => void;
   toggleSaveListing: (listingId: string) => void;
   isSaved: (listingId: string) => boolean;
+  authHeaders: () => Record<string, string>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const USERS_STORAGE_KEY = 'gotham_users_db_v1';
-const SESSION_STORAGE_KEY = 'gotham_active_session_v1';
+const SESSION_STORAGE_KEY = 'gotham_active_session_v2';
+const TOKEN_STORAGE_KEY = 'gotham_auth_token_v1';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
@@ -32,104 +46,108 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return null;
     }
   });
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_STORAGE_KEY));
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Sync session state to LocalStorage
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
-      // Update persistent DB user record
-      try {
-        const usersRaw = localStorage.getItem(USERS_STORAGE_KEY);
-        const users: Record<string, any> = usersRaw ? JSON.parse(usersRaw) : {};
-        if (users[user.email.toLowerCase()]) {
-          users[user.email.toLowerCase()].savedListingIds = user.savedListingIds;
-          localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-        }
-      } catch (e) {
-        console.error('Failed to sync user storage:', e);
-      }
+  const persistSession = useCallback((nextUser: User | null, nextToken: string | null) => {
+    setUser(nextUser);
+    setToken(nextToken);
+    if (nextUser && nextToken) {
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(nextUser));
+      localStorage.setItem(TOKEN_STORAGE_KEY, nextToken);
     } else {
       localStorage.removeItem(SESSION_STORAGE_KEY);
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
     }
-  }, [user]);
+  }, []);
 
-  const signup = async (email: string, password: string, name: string) => {
-    const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail || !password || !name) {
-      return { success: false, error: 'All fields are required.' };
-    }
-    if (password.length < 6) {
-      return { success: false, error: 'Password must be at least 6 characters long.' };
-    }
+  const authHeaders = useCallback((): Record<string, string> => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  }, [token]);
 
-    try {
-      const usersRaw = localStorage.getItem(USERS_STORAGE_KEY);
-      const users: Record<string, any> = usersRaw ? JSON.parse(usersRaw) : {};
-
-      if (users[cleanEmail]) {
-        return { success: false, error: 'An account with this email already exists.' };
+  // Validate session against server on mount
+  useEffect(() => {
+    let cancelled = false;
+    async function hydrate() {
+      if (!token) {
+        setIsLoading(false);
+        return;
       }
+      try {
+        const res = await fetch('/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          if (!cancelled) persistSession(null, null);
+        } else {
+          const data = await res.json();
+          if (!cancelled) persistSession(data.user, token);
+        }
+      } catch {
+        // keep local session if offline
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+    hydrate();
+    return () => {
+      cancelled = true;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-      const avatarSeed = encodeURIComponent(name);
-      const newUser: User = {
-        id: `user_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        email: cleanEmail,
-        name: name.trim(),
-        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`,
-        savedListingIds: [],
-        createdAt: new Date().toISOString(),
-      };
-
-      users[cleanEmail] = {
-        ...newUser,
-        password, // stored locally for prototype authentication
-      };
-
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-      setUser(newUser);
-      return { success: true };
-    } catch (err) {
+  const signup = async (payload: {
+    email: string;
+    password: string;
+    name: string;
+    role?: UserRole;
+    companyName?: string;
+    bio?: string;
+  }) => {
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Failed to register account.' };
+      persistSession(data.user, data.token);
+      return { success: true, user: data.user as User };
+    } catch {
       return { success: false, error: 'Failed to process account registration.' };
     }
   };
 
   const login = async (email: string, password: string) => {
-    const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail || !password) {
-      return { success: false, error: 'Please enter both email and password.' };
-    }
-
     try {
-      const usersRaw = localStorage.getItem(USERS_STORAGE_KEY);
-      const users: Record<string, any> = usersRaw ? JSON.parse(usersRaw) : {};
-
-      const existingUser = users[cleanEmail];
-      if (!existingUser || existingUser.password !== password) {
-        return { success: false, error: 'Invalid email or password.' };
-      }
-
-      const sessionUser: User = {
-        id: existingUser.id,
-        email: existingUser.email,
-        name: existingUser.name,
-        avatarUrl: existingUser.avatarUrl,
-        savedListingIds: existingUser.savedListingIds || [],
-        createdAt: existingUser.createdAt,
-      };
-
-      setUser(sessionUser);
-      return { success: true };
-    } catch (err) {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Failed to sign in.' };
+      persistSession(data.user, data.token);
+      return { success: true, user: data.user as User };
+    } catch {
       return { success: false, error: 'Authentication failed. Please try again.' };
     }
   };
 
   const logout = () => {
-    setUser(null);
+    if (token) {
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => undefined);
+    }
+    persistSession(null, null);
   };
 
   const toggleSaveListing = (listingId: string) => {
-    if (!user) return;
+    if (!user || !token) return;
 
     setUser((prevUser) => {
       if (!prevUser) return null;
@@ -137,24 +155,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedIds = exists
         ? prevUser.savedListingIds.filter((id) => id !== listingId)
         : [...prevUser.savedListingIds, listingId];
+      const next = { ...prevUser, savedListingIds: updatedIds };
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(next));
 
-      return { ...prevUser, savedListingIds: updatedIds };
+      fetch('/api/auth/me', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ savedListingIds: updatedIds }),
+      }).catch(() => undefined);
+
+      return next;
     });
   };
 
-  const isSaved = (listingId: string) => {
-    return !!user?.savedListingIds.includes(listingId);
-  };
+  const isSaved = (listingId: string) => !!user?.savedListingIds.includes(listingId);
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        token,
+        isLoading,
         signup,
         login,
         logout,
         toggleSaveListing,
         isSaved,
+        authHeaders,
       }}
     >
       {children}
