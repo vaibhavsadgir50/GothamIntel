@@ -1,0 +1,320 @@
+[
+  {
+    "id": "gotham-001",
+    "title": "Sunlit Soho Loft with Exposed Brick & Soaring 12ft Ceilings",
+    "price": 4250,
+    "beds": 1,
+    "baths": 1,
+    "neighborhood": "SoHo",
+    "borough": "Manhattan",
+    "address": "112 Prince St #4B, New York, NY 10012",
+    "lat": 40.7252,
+    "lng": -73.9982,
+    "amenities": [
+      "Exposed Brick",
+      "Hardwood Floors",
+      "In-Unit Washer/Dryer",
+      "Decorative Fireplace",
+      "Dishwasher",
+      "Video Intercom"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1200&auto=format&fit=crop",
+    "galleryImages": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200&auto=format&fit=crop"
+    ],
+    "aiRating": 9.6,
+    "aiRatingBreakdown": {
+      "transit": 9.8,
+      "safety": 9.2,
+      "bodega": 9.9,
+      "vibe": 9.8,
+      "value": 9.1
+    },
+    "source": "StreetEasy",
+    "sourceUrl": "https://streeteasy.com/building/112-prince-street-new_york/4b",
+    "youtube_search_term": "SoHo Manhattan NYC apartment walking tour 4K",
+    "google_place_id": "ChIJmQ3Y_xdZwokR5Gz3m7-PrinceSt",
+    "mock_crime_data": {
+      "assault": 1,
+      "petit_larceny": 14,
+      "noise_complaints": 28
+    },
+    "mock_local_reviews": [
+      "You literally step out of your door into designer shops and cobblestone streets. Prince St station is 30 seconds away.",
+      "Noise complaints are mostly delivery trucks at 6 AM and tourists taking street style photos right under your window.",
+      "Joe's Steam Rice Roll and Balthazar are your neighbors. You will spend all your savings on pastries and coffee."
+    ],
+    "bodega_index": 5,
+    "subway_lines": ["N", "R", "W", "6", "B", "D"],
+    "train_alert": "⚠️ N/R Line: Prince St station closed overnight on alternate Wednesdays.",
+    "vibe_tags": ["exposed brick", "pre-war", "luxury", "shopping", "historic", "high ceilings"]
+  },
+  {
+    "id": "gotham-002",
+    "title": "Williamsburg Waterfront Industrial Conversion near L Train",
+    "price": 3800,
+    "beds": 1,
+    "baths": 1,
+    "neighborhood": "Williamsburg",
+    "borough": "Brooklyn",
+    "address": "184 N 8th St #3A, Brooklyn, NY 11211",
+    "lat": 40.7182,
+    "lng": -73.9582,
+    "amenities": [
+      "Concrete Accent Walls",
+      "Private Balcony",
+      "Roof Deck with Skyline View",
+      "Fitness Center",
+      "Pet Friendly",
+      "Storage Cage"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=1200&auto=format&fit=crop",
+    "galleryImages": [
+      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=1200&auto=format&fit=crop"
+    ],
+    "aiRating": 9.4,
+    "aiRatingBreakdown": {
+      "transit": 9.5,
+      "safety": 9.0,
+      "bodega": 10.0,
+      "vibe": 9.7,
+      "value": 8.8
+    },
+    "source": "Zillow",
+    "sourceUrl": "https://www.zillow.com/homedetails/184-N-8th-St-Brooklyn-NY-11211",
+    "youtube_search_term": "Williamsburg Brooklyn walking tour 4k",
+    "google_place_id": "ChIJ1S2dYFZZwokR_BedfordL",
+    "mock_crime_data": {
+      "assault": 2,
+      "petit_larceny": 9,
+      "noise_complaints": 42
+    },
+    "mock_local_reviews": [
+      "Bedford L train is 3 blocks away. Get ready to elbow tech dudes during morning rush, but you get to Manhattan in 8 minutes.",
+      "Smorgasburg on weekends gets insane near Marsha P. Johnson park, but the sunset over Midtown from the rooftop makes up for it.",
+      "The local bodega 'Green Gourmet' has the top 3 BEC in Brooklyn, no question. Open 24/7."
+    ],
+    "bodega_index": 5,
+    "subway_lines": ["L", "G"],
+    "train_alert": "⚠️ L Train Alert: Expect 12-min headway on Saturdays due to track maintenance.",
+    "vibe_tags": ["L train", "industrial", "nightlife", "rooftop", "waterfront", "hipster hub"]
+  },
+  {
+    "id": "gotham-003",
+    "title": "Spacious Pre-War LES Corner 2-Bed with Speakeasy Vibes",
+    "price": 3400,
+    "beds": 2,
+    "baths": 1,
+    "neighborhood": "Lower East Side",
+    "borough": "Manhattan",
+    "address": "88 Orchard St #5F, New York, NY 10002",
+    "lat": 40.718,
+    "lng": -73.99,
+    "amenities": [
+      "Windowed Kitchen",
+      "High Ceilings",
+      "French Doors",
+      "Live-In Super",
+      "Exposed Brick",
+      "Heat & Water Included"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop",
+    "galleryImages": [
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=1200&auto=format&fit=crop"
+    ],
+    "aiRating": 9.1,
+    "aiRatingBreakdown": {
+      "transit": 9.2,
+      "safety": 8.5,
+      "bodega": 9.5,
+      "vibe": 9.9,
+      "value": 9.4
+    },
+    "source": "StreetEasy",
+    "sourceUrl": "https://streeteasy.com/building/88-orchard-street-new_york/5f",
+    "youtube_search_term": "Lower East Side NYC food tour nightlife 4K",
+    "google_place_id": "ChIJyX1R4RZZwokR_OrchardLES",
+    "mock_crime_data": {
+      "assault": 3,
+      "petit_larceny": 18,
+      "noise_complaints": 65
+    },
+    "mock_local_reviews": [
+      "It is directly above two speakeasies and a vintage shop. Friday nights get loud, but if you love bar hopping it's paradise.",
+      "5th floor walkup means gratis leg day every day. Don't bring heavy groceries without mental preparation.",
+      "Katz's Delicatessen is around the corner. Smells like pastrami on warm humid days."
+    ],
+    "bodega_index": 4,
+    "subway_lines": ["F", "M", "J", "Z", "B", "D"],
+    "train_alert": "⚠️ F Train Notice: Delancey-Essex elevators under repair.",
+    "vibe_tags": ["pre-war", "busy nightlife", "speakeasy", "walkup", "artistic", "foodie paradise"]
+  },
+  {
+    "id": "gotham-004",
+    "title": "Quiet Sunlit Astoria Park Oasis with River Views & Elevator",
+    "price": 2750,
+    "beds": 1,
+    "baths": 1,
+    "neighborhood": "Astoria",
+    "borough": "Queens",
+    "address": "21-15 31st St #3B, Astoria, NY 11105",
+    "lat": 40.7785,
+    "lng": -73.912,
+    "amenities": [
+      "Elevator",
+      "Private Balcony",
+      "Dishwasher",
+      "Central AC",
+      "Laundry in Building",
+      "Garage Parking Available"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200&auto=format&fit=crop",
+    "galleryImages": [
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1200&auto=format&fit=crop"
+    ],
+    "aiRating": 9.7,
+    "aiRatingBreakdown": {
+      "transit": 9.0,
+      "safety": 9.9,
+      "bodega": 9.8,
+      "vibe": 9.3,
+      "value": 10.0
+    },
+    "source": "Apartments.com",
+    "sourceUrl": "https://www.apartments.com/21-15-31st-st-astoria-ny/gotham004",
+    "youtube_search_term": "Astoria Queens neighborhood tour 4K",
+    "google_place_id": "ChIJ-w123AstoriaQns",
+    "mock_crime_data": {
+      "assault": 0,
+      "petit_larceny": 4,
+      "noise_complaints": 8
+    },
+    "mock_local_reviews": [
+      "Astoria is insanely peaceful compared to Manhattan. Ditmars Blvd N/W train terminus guarantees you get a seat every morning.",
+      "Greek tavernas, authentic bakeries, and Astoria Park beer gardens within 5 mins walk. Unbeatable value.",
+      "Super low noise complaints. The worst you hear is kids playing in Astoria Park or street music on summer evenings."
+    ],
+    "bodega_index": 5,
+    "subway_lines": ["N", "W"],
+    "train_alert": "✅ N/W Line: Normal 24/7 service operating smoothly.",
+    "vibe_tags": ["quiet oasis", "park views", "family friendly", "greek food", "spacious", "elevator"]
+  },
+  {
+    "id": "gotham-005",
+    "title": "DUMBO Waterfront Luxury Highrise with Skyline Panorama",
+    "price": 5400,
+    "beds": 2,
+    "baths": 2,
+    "neighborhood": "DUMBO",
+    "borough": "Brooklyn",
+    "address": "60 Water St #11C, Brooklyn, NY 11201",
+    "lat": 40.7032,
+    "lng": -73.9895,
+    "amenities": [
+      "24hr Doorman",
+      "Floor-to-Ceiling Windows",
+      "Manhattan Bridge View",
+      "Rooftop Cabanas",
+      "Gym & Yoga Studio",
+      "Concierge"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1200&auto=format&fit=crop",
+    "galleryImages": [
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop"
+    ],
+    "aiRating": 9.8,
+    "aiRatingBreakdown": {
+      "transit": 9.1,
+      "safety": 9.8,
+      "bodega": 8.5,
+      "vibe": 10.0,
+      "value": 8.2
+    },
+    "source": "StreetEasy",
+    "sourceUrl": "https://streeteasy.com/building/60-water-street-brooklyn/11c",
+    "youtube_search_term": "DUMBO Brooklyn NYC apartment view 4K",
+    "google_place_id": "ChIJDUMBO_WaterStBklyn",
+    "mock_crime_data": {
+      "assault": 0,
+      "petit_larceny": 6,
+      "noise_complaints": 12
+    },
+    "mock_local_reviews": [
+      "The view of the Brooklyn Bridge and Manhattan skyline from the floor-to-ceiling windows is surreal.",
+      "Cobblestone streets mean tourists taking photos 24/7 on Washington St, but inside the building it is dead silent.",
+      "Time Out Market and Brooklyn Bridge Park are your backyard. F train at York St is 4 minutes walk."
+    ],
+    "bodega_index": 4,
+    "subway_lines": ["F", "A", "C"],
+    "train_alert": "⚠️ F Train Alert: Single tracking past York St on weekend nights.",
+    "vibe_tags": ["luxury", "doorman", "skyline views", "waterfront", "cobblestone", "modern"]
+  },
+  {
+    "id": "gotham-006",
+    "title": "Bushwick Loft with Private Terrace & Mural Art Yard",
+    "price": 3100,
+    "beds": 2,
+    "baths": 1,
+    "neighborhood": "Bushwick",
+    "borough": "Brooklyn",
+    "address": "240 Wyckoff Ave #2B, Brooklyn, NY 11237",
+    "lat": 40.7025,
+    "lng": -73.918,
+    "amenities": [
+      "Private Terrace",
+      "High Ceilings",
+      "Art Studio Space",
+      "Dishwasher",
+      "Pet Friendly",
+      "Near L & M Trains"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=1200&auto=format&fit=crop",
+    "galleryImages": [
+      "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200&auto=format&fit=crop"
+    ],
+    "aiRating": 9.3,
+    "aiRatingBreakdown": {
+      "transit": 9.7,
+      "safety": 8.7,
+      "bodega": 9.9,
+      "vibe": 9.8,
+      "value": 9.6
+    },
+    "source": "StreetEasy",
+    "sourceUrl": "https://streeteasy.com/building/240-wyckoff-avenue-brooklyn/2b",
+    "youtube_search_term": "Bushwick Brooklyn street art nightlife tour 4k",
+    "google_place_id": "ChIJBushwick_WyckoffLM",
+    "mock_crime_data": {
+      "assault": 2,
+      "petit_larceny": 11,
+      "noise_complaints": 52
+    },
+    "mock_local_reviews": [
+      "Myrtle-Wyckoff L/M train junction is 2 mins away. Incredible access to both East/West Brooklyn and Manhattan.",
+      "The street art, techno clubs (House of Yes), and coffee shops give it unmatched creative energy.",
+      "Noise level is elevated on weekends, but the private terrace gives you a chill sanctuary."
+    ],
+    "bodega_index": 5,
+    "subway_lines": ["L", "M"],
+    "train_alert": "⚠️ M Train: Shuttle bus service between Myrtle and Middle Village on Sundays.",
+    "vibe_tags": ["artistic", "terrace", "L train", "creative hub", "techno nightlife", "pre-war"]
+  }
+]

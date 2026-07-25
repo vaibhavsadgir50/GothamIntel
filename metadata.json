@@ -1,0 +1,6 @@
+{
+  "name": "GothamIntel",
+  "description": "AI-powered, multimodal NYC real estate listing and neighborhood analysis platform.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
