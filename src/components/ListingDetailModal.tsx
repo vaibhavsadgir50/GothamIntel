@@ -19,9 +19,11 @@ import {
   CheckCircle2,
   AlertTriangle,
   Volume2,
-  MessageSquare
+  MessageSquare,
+  Quote,
+  RefreshCw,
 } from 'lucide-react';
-import { Listing, ChatMessage } from '../types';
+import { Listing, ChatMessage, AreaIntelResponse } from '../types';
 
 interface ListingDetailModalProps {
   listing: Listing | null;
@@ -57,6 +59,10 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
   const [isSending, setIsSending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Live Area-Intel Agent state (real Google Places nearby-place reviews)
+  const [areaIntel, setAreaIntel] = useState<AreaIntelResponse | null>(null);
+  const [isLoadingAreaIntel, setIsLoadingAreaIntel] = useState<boolean>(false);
+
   // Reset image index when listing changes
   useEffect(() => {
     setCurrentImageIdx(0);
@@ -74,6 +80,27 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
+
+  // Fetch the live area-intel agent's grounded read on nearby places
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoadingAreaIntel(true);
+    setAreaIntel(null);
+
+    fetch(`/api/area-intel/${listing.id}`)
+      .then((res) => res.json())
+      .then((data: AreaIntelResponse) => {
+        if (isMounted) setAreaIntel(data);
+      })
+      .catch((err) => console.error('Error fetching area intel:', err))
+      .finally(() => {
+        if (isMounted) setIsLoadingAreaIntel(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [listing.id]);
 
   const handleNextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -404,7 +431,69 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
             </div>
           </div>
 
-          {/* 5. INTERACTIVE CHAT WITH AI AGENT IN BELOW SECTION */}
+          {/* 5. LIVE AREA-INTEL AGENT (real Google Places reviews) */}
+          <div className="p-5 space-y-3 bg-neutral-900/40 border-t border-white/10">
+            <div>
+              {/* Live Area-Intel Agent Card */}
+              <div className="p-3.5 rounded-2xl bg-neutral-900 border border-white/10 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[10px] font-mono font-bold uppercase text-neutral-300 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                    Live Area-Intel Agent (Google Places)
+                  </h4>
+                  <span
+                    className={`text-[9px] font-mono font-bold ${
+                      areaIntel?.isLive ? 'text-emerald-400' : 'text-amber-400'
+                    }`}
+                  >
+                    {areaIntel?.isLive ? `⚡ LIVE • ${areaIntel.modelUsed}` : 'OFFLINE'}
+                  </span>
+                </div>
+
+                {isLoadingAreaIntel ? (
+                  <div className="py-6 flex flex-col items-center justify-center text-center space-y-2">
+                    <RefreshCw className="w-5 h-5 text-emerald-400 animate-spin" />
+                    <p className="font-mono text-[10px] text-neutral-400">Reading real Google Maps reviews nearby...</p>
+                  </div>
+                ) : areaIntel?.profile ? (
+                  <div className="space-y-2.5">
+                    <p className="text-xs text-neutral-300 font-sans leading-relaxed">
+                      {areaIntel.profile.overallVerdict}
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {areaIntel.profile.standoutSpots.slice(0, 4).map((s, i) => (
+                        <div key={i} className="p-2 rounded-xl bg-white/5 border border-white/5 text-[11px] space-y-0.5">
+                          <div className="font-bold text-emerald-400">{s.name}</div>
+                          <div className="text-neutral-400">{s.why}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {areaIntel.profile.notableQuotes.length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        {areaIntel.profile.notableQuotes.slice(0, 3).map((q, i) => (
+                          <div key={i} className="text-[10px] text-neutral-400 italic font-sans flex gap-1.5">
+                            <Quote className="w-3 h-3 text-emerald-500 shrink-0 mt-0.5" />
+                            <span>
+                              "{q.quote}" — <span className="text-neutral-500 not-italic">{q.placeName}</span>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs font-mono text-amber-300/80">
+                    {areaIntel?.reason ||
+                      'Add GOOGLE_MAPS_PLATFORM_KEY with Places API (New) enabled to activate live area intel.'}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* 6. INTERACTIVE CHAT WITH AI AGENT IN BELOW SECTION */}
           <div className="p-5 space-y-4 bg-neutral-950 border-t border-white/15">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-mono font-bold uppercase text-white flex items-center gap-2">

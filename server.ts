@@ -1,9 +1,17 @@
+import "dotenv/config";
 import express from "express";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
+import { buildAreaDossier, type PlaceWithReviews } from "./server/googlePlaces";
+import {
+  runAreaResearchAgent,
+  runImagePromptAgent,
+  runStampImageAgent,
+  type AreaProfile,
+} from "./server/agentHarness";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,6 +41,67 @@ if (geminiApiKey && geminiApiKey !== "MY_GEMINI_API_KEY") {
     });
   } catch (e) {
     console.error("Failed to initialize GoogleGenAI:", e);
+  }
+}
+
+const mapsApiKey = process.env.GOOGLE_MAPS_PLATFORM_KEY || "";
+
+// In-memory caches for the area-intel agent harness. Google Places Details
+// calls are billed per request, so both the research pipeline and the stamp
+// image it feeds are cached per listing rather than re-run on every request.
+const AREA_PROFILE_TTL_MS = 60 * 60 * 1000; // 1 hour
+interface AreaProfileCacheEntry {
+  neighborhood: string;
+  borough: string;
+  dossier: PlaceWithReviews[];
+  profile: AreaProfile;
+  modelUsed: string;
+  cachedAt: number;
+}
+const areaProfileCache = new Map<string, AreaProfileCacheEntry>();
+
+interface StampCacheEntry {
+  imageBase64: string;
+  mimeType: string;
+  prompt: string;
+  modelUsed: string;
+  cachedAt: number;
+}
+const stampCache = new Map<string, StampCacheEntry>();
+
+// Runs the Area Research Agent (Places dossier -> Gemini synthesis), caching
+// the result per listing. Returns null if Google Maps isn't configured or the
+// pipeline fails, so callers can fall back gracefully.
+async function getOrBuildAreaProfile(listing: any): Promise<AreaProfileCacheEntry | null> {
+  const cached = areaProfileCache.get(listing.id);
+  if (cached && Date.now() - cached.cachedAt < AREA_PROFILE_TTL_MS) {
+    return cached;
+  }
+
+  if (!mapsApiKey || !aiClient) return cached || null;
+
+  try {
+    const dossier = await buildAreaDossier(listing.lat, listing.lng, mapsApiKey);
+    const { profile, modelUsed } = await runAreaResearchAgent(
+      aiClient,
+      listing.neighborhood,
+      listing.borough,
+      dossier
+    );
+
+    const entry: AreaProfileCacheEntry = {
+      neighborhood: listing.neighborhood,
+      borough: listing.borough,
+      dossier,
+      profile,
+      modelUsed,
+      cachedAt: Date.now(),
+    };
+    areaProfileCache.set(listing.id, entry);
+    return entry;
+  } catch (err) {
+    console.error("Area research agent pipeline failed:", err);
+    return cached || null;
   }
 }
 
@@ -70,6 +139,25 @@ async function startServer() {
 
       if (aiClient && listing) {
         try {
+          const areaEntry = await getOrBuildAreaProfile(listing);
+
+          const areaIntelBlock = areaEntry
+            ? `
+LIVE GOOGLE MAPS AREA INTEL (real nearby places & reviews, synthesized by the area-research agent):
+Vibe: ${areaEntry.profile.vibeSummary}
+Safety take: ${areaEntry.profile.safetyTake}
+Noise take: ${areaEntry.profile.noiseTake}
+Food & drink scene: ${areaEntry.profile.foodAndDrinkScene}
+Walkability: ${areaEntry.profile.walkabilityScore}/10
+Standout spots: ${areaEntry.profile.standoutSpots.map((s) => `${s.name} (${s.why})`).join("; ")}
+Real review quotes: ${areaEntry.profile.notableQuotes.map((q) => `${q.placeName}: "${q.quote}"`).join(" | ")}
+`
+            : `
+RESIDENT INSIDER QUOTES (fallback, no live Google Maps data configured):
+- "${listing.mock_local_reviews[0]}"
+- "${listing.mock_local_reviews[1]}"
+`;
+
           const systemPrompt = `
 You are GothamIntel's street-smart, razor-sharp, authentic NYC Real Estate AI Assistant.
 The user is viewing and asking questions about a specific NYC apartment listing:
@@ -87,13 +175,10 @@ Bodega Index: ${listing.bodega_index}/5
 
 CRIME & STREET REALITY:
 Assaults (90d): ${listing.mock_crime_data.assault}, Larceny: ${listing.mock_crime_data.petit_larceny}, Noise Complaints: ${listing.mock_crime_data.noise_complaints}
-
-RESIDENT INSIDER QUOTES:
-- "${listing.mock_local_reviews[0]}"
-- "${listing.mock_local_reviews[1]}"
-
+${areaIntelBlock}
 INSTRUCTIONS:
 - Give a concise, street-smart, friendly, and authentic NYC answer (2-4 sentences max).
+- Prefer the live Google Maps area intel above (when present) over generic assumptions — it's grounded in real reviews.
 - Include genuine local insight (subway commute tips, noise levels, bodega advice, rent value).
 - Be direct, informative, and engaging.
 `;
@@ -450,6 +535,127 @@ Please provide JSON with these exact fields:
     } catch (err: any) {
       console.error("Neighborhood intel route error:", err);
       res.status(500).json({ error: "Failed to generate neighborhood intel" });
+    }
+  });
+
+  // API Route: Area Intel Agent Harness — real Google Places nearby-place
+  // reviews synthesized by the Area Research Agent (cheap Gemini model).
+  app.get("/api/area-intel/:id", async (req, res) => {
+    try {
+      const listing = listingsData.find((l: any) => l.id === req.params.id);
+      if (!listing) {
+        return res.status(404).json({ error: "Listing not found" });
+      }
+
+      if (!mapsApiKey) {
+        return res.json({
+          listingId: listing.id,
+          isLive: false,
+          reason: "GOOGLE_MAPS_PLATFORM_KEY not configured — enable Places API (New) on the key to activate live area intel.",
+          profile: null,
+          nearbyPlaces: [],
+        });
+      }
+
+      const entry = await getOrBuildAreaProfile(listing);
+      if (!entry) {
+        return res.json({
+          listingId: listing.id,
+          isLive: false,
+          reason: "Area research agent pipeline failed — see server logs.",
+          profile: null,
+          nearbyPlaces: [],
+        });
+      }
+
+      res.json({
+        listingId: listing.id,
+        isLive: true,
+        modelUsed: entry.modelUsed,
+        cachedAt: entry.cachedAt,
+        profile: entry.profile,
+        nearbyPlaces: entry.dossier.map((p) => ({
+          name: p.name,
+          types: p.types,
+          rating: p.rating,
+          userRatingCount: p.userRatingCount,
+          reviews: p.reviews.slice(0, 3),
+        })),
+      });
+    } catch (err: any) {
+      console.error("Area intel route error:", err);
+      res.status(500).json({ error: "Failed to generate area intel" });
+    }
+  });
+
+  // API Route: Neighborhood Stamp — Creative Direction Agent writes an image
+  // prompt from the (cached) area profile, then the Nano Banana image agent
+  // renders it. Cached per listing since image generation is the costliest
+  // step in the pipeline; pass { "regenerate": true } to force a fresh stamp.
+  app.post("/api/area-stamp/:id", async (req, res) => {
+    try {
+      const listing = listingsData.find((l: any) => l.id === req.params.id);
+      if (!listing) {
+        return res.status(404).json({ error: "Listing not found" });
+      }
+      if (!aiClient) {
+        return res.status(503).json({ error: "Gemini client not configured" });
+      }
+
+      const regenerate = !!req.body?.regenerate;
+      const cached = stampCache.get(listing.id);
+      if (cached && !regenerate) {
+        return res.json({
+          listingId: listing.id,
+          imageDataUrl: `data:${cached.mimeType};base64,${cached.imageBase64}`,
+          prompt: cached.prompt,
+          modelUsed: cached.modelUsed,
+          cachedAt: cached.cachedAt,
+        });
+      }
+
+      const areaEntry = await getOrBuildAreaProfile(listing);
+      const profile: AreaProfile = areaEntry?.profile || {
+        vibeSummary: `${listing.neighborhood}, ${listing.borough} — a distinctly NYC pocket of the city.`,
+        safetyTake: "No live data available.",
+        noiseTake: "No live data available.",
+        foodAndDrinkScene: listing.amenities.join(", "),
+        walkabilityScore: 8,
+        standoutSpots: [],
+        notableQuotes: [],
+        overallVerdict: "A classic Gotham neighborhood.",
+      };
+
+      const { prompt, modelUsed: promptModel } = await runImagePromptAgent(
+        aiClient,
+        listing.neighborhood,
+        profile
+      );
+
+      const { imageBase64, mimeType, modelUsed: imageModel } = await runStampImageAgent(
+        aiClient,
+        prompt
+      );
+
+      const entry: StampCacheEntry = {
+        imageBase64,
+        mimeType,
+        prompt,
+        modelUsed: `${promptModel} -> ${imageModel}`,
+        cachedAt: Date.now(),
+      };
+      stampCache.set(listing.id, entry);
+
+      res.json({
+        listingId: listing.id,
+        imageDataUrl: `data:${mimeType};base64,${imageBase64}`,
+        prompt,
+        modelUsed: entry.modelUsed,
+        cachedAt: entry.cachedAt,
+      });
+    } catch (err: any) {
+      console.error("Area stamp route error:", err);
+      res.status(500).json({ error: "Failed to generate neighborhood stamp" });
     }
   });
 

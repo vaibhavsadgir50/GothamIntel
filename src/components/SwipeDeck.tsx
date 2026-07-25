@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
 import {
   X,
@@ -14,9 +14,10 @@ import {
   ChevronRight,
   ShieldCheck,
   Building2,
-  Maximize2
+  Maximize2,
+  RefreshCw
 } from 'lucide-react';
-import { Listing } from '../types';
+import { Listing, AreaStampResponse } from '../types';
 
 interface SwipeDeckProps {
   listings: Listing[];
@@ -41,6 +42,48 @@ export const SwipeDeck: React.FC<SwipeDeckProps> = ({
   const opacityRight = useTransform(x, [20, 150], [0, 1]);
 
   const activeListing = listings[currentIndex];
+
+  // Neighborhood Stamp (Creative Direction Agent -> Nano Banana image agent),
+  // shown as a badge stamped on the poster card itself. Cached client-side by
+  // listing id and prefetched a few cards ahead so the image is already
+  // warm (server-cached + fetched) by the time the user swipes to it.
+  const STAMP_PREFETCH_AHEAD = 2;
+  const [stampsById, setStampsById] = useState<Record<string, AreaStampResponse>>({});
+  const stampsRef = useRef<Record<string, AreaStampResponse>>({});
+  const stampInFlightRef = useRef<Set<string>>(new Set());
+
+  const fetchStamp = (listingId: string) => {
+    if (stampsRef.current[listingId] || stampInFlightRef.current.has(listingId)) return;
+    stampInFlightRef.current.add(listingId);
+
+    fetch(`/api/area-stamp/${listingId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Stamp generation failed');
+        return res.json();
+      })
+      .then((data: AreaStampResponse) => {
+        stampsRef.current[listingId] = data;
+        setStampsById((prev) => ({ ...prev, [listingId]: data }));
+      })
+      .catch((err) => console.error('Error generating neighborhood stamp:', err))
+      .finally(() => {
+        stampInFlightRef.current.delete(listingId);
+      });
+  };
+
+  useEffect(() => {
+    for (let i = currentIndex; i <= currentIndex + STAMP_PREFETCH_AHEAD; i++) {
+      const upcoming = listings[i];
+      if (upcoming) fetchStamp(upcoming.id);
+    }
+  }, [currentIndex, listings]);
+
+  const stamp = activeListing ? stampsById[activeListing.id] : undefined;
+  const isLoadingStamp = !!activeListing && !stamp;
 
   const handleSwipe = (direction: 'left' | 'right') => {
     if (!activeListing) return;
@@ -206,6 +249,27 @@ export const SwipeDeck: React.FC<SwipeDeckProps> = ({
 
                 <div className="px-3 py-1 rounded-full bg-black/80 backdrop-blur-md border border-white/20 text-white font-mono text-xs font-bold uppercase">
                   {activeListing.neighborhood}
+                </div>
+              </div>
+
+              {/* Neighborhood Stamp — Gen Z infographic stamp, agent-generated per area,
+                  stamped directly onto the poster (not buried in the details modal) */}
+              <div className="absolute top-28 sm:top-32 right-4 z-20 pointer-events-none transform rotate-[-6deg]">
+                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 rounded-2xl border-[4px] border-white shadow-2xl overflow-hidden bg-black/60 backdrop-blur-md flex items-center justify-center">
+                  {isLoadingStamp ? (
+                    <div className="flex flex-col items-center gap-1.5 text-neutral-300">
+                      <RefreshCw className="w-7 h-7 text-emerald-400 animate-spin" />
+                      <span className="text-[9px] font-mono">Stamping...</span>
+                    </div>
+                  ) : stamp ? (
+                    <img
+                      src={stamp.imageDataUrl}
+                      alt={`${activeListing.neighborhood} neighborhood stamp`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Sparkles className="w-7 h-7 text-neutral-500" />
+                  )}
                 </div>
               </div>
 

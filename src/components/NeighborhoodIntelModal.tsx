@@ -16,8 +16,10 @@ import {
   Bookmark,
   Award,
   Zap,
+  Image as ImageIcon,
+  Quote,
 } from 'lucide-react';
-import { Listing, IntelResponse } from '../types';
+import { Listing, IntelResponse, AreaIntelResponse, AreaStampResponse } from '../types';
 
 interface NeighborhoodIntelModalProps {
   listing: Listing | null;
@@ -35,6 +37,15 @@ export const NeighborhoodIntelModal: React.FC<NeighborhoodIntelModalProps> = ({
   const [intelData, setIntelData] = useState<IntelResponse | null>(null);
   const [isLoadingIntel, setIsLoadingIntel] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
+
+  // Live Area-Intel Agent state (real Google Places nearby-place reviews)
+  const [areaIntel, setAreaIntel] = useState<AreaIntelResponse | null>(null);
+  const [isLoadingAreaIntel, setIsLoadingAreaIntel] = useState<boolean>(false);
+
+  // Neighborhood Stamp state (Creative Direction Agent -> Nano Banana image agent)
+  const [stamp, setStamp] = useState<AreaStampResponse | null>(null);
+  const [isGeneratingStamp, setIsGeneratingStamp] = useState<boolean>(false);
+  const [stampError, setStampError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!listing) return;
@@ -60,6 +71,60 @@ export const NeighborhoodIntelModal: React.FC<NeighborhoodIntelModalProps> = ({
       isMounted = false;
     };
   }, [listing]);
+
+  // Fetch the live area-intel agent's grounded read on nearby places
+  useEffect(() => {
+    if (!listing) return;
+
+    let isMounted = true;
+    setIsLoadingAreaIntel(true);
+    setAreaIntel(null);
+
+    fetch(`/api/area-intel/${listing.id}`)
+      .then((res) => res.json())
+      .then((data: AreaIntelResponse) => {
+        if (isMounted) setAreaIntel(data);
+      })
+      .catch((err) => console.error('Error fetching area intel:', err))
+      .finally(() => {
+        if (isMounted) setIsLoadingAreaIntel(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [listing]);
+
+  const requestStamp = (regenerate: boolean) => {
+    if (!listing) return;
+    setIsGeneratingStamp(true);
+    setStampError(null);
+
+    fetch(`/api/area-stamp/${listing.id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ regenerate }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Stamp generation failed');
+        return res.json();
+      })
+      .then((data: AreaStampResponse) => setStamp(data))
+      .catch((err) => {
+        console.error('Error generating neighborhood stamp:', err);
+        setStampError('Could not generate neighborhood stamp.');
+      })
+      .finally(() => setIsGeneratingStamp(false));
+  };
+
+  // Auto-generate the neighborhood stamp once per listing (cached server-side)
+  useEffect(() => {
+    if (!listing) return;
+    setStamp(null);
+    setStampError(null);
+    requestStamp(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listing?.id]);
 
   if (!listing) return null;
 
@@ -209,6 +274,108 @@ export const NeighborhoodIntelModal: React.FC<NeighborhoodIntelModalProps> = ({
                 </div>
               </div>
             ) : null}
+          </div>
+
+          {/* LIVE AREA-INTEL AGENT (real Google Places reviews) + NEIGHBORHOOD STAMP */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Neighborhood Stamp — Creative Direction Agent -> Nano Banana image agent */}
+            <div className="p-4 rounded-2xl bg-neutral-900 border border-white/10 space-y-3 flex flex-col">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-mono font-bold uppercase text-neutral-300 flex items-center gap-1.5">
+                  <ImageIcon className="w-4 h-4 text-emerald-400" />
+                  Neighborhood Stamp
+                </h4>
+                <button
+                  onClick={() => requestStamp(true)}
+                  disabled={isGeneratingStamp}
+                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 disabled:opacity-40 transition-all"
+                  title="Regenerate stamp"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingStamp ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+
+              <div className="aspect-square w-full rounded-xl bg-neutral-950 border border-white/10 overflow-hidden flex items-center justify-center">
+                {isGeneratingStamp ? (
+                  <div className="flex flex-col items-center gap-2 text-neutral-400 p-4 text-center">
+                    <RefreshCw className="w-6 h-6 animate-spin text-emerald-400" />
+                    <span className="text-[10px] font-mono">Nano Banana rendering stamp...</span>
+                  </div>
+                ) : stamp ? (
+                  <img
+                    src={stamp.imageDataUrl}
+                    alt={`${listing.neighborhood} neighborhood stamp`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-neutral-500 p-4 text-center">
+                    <ImageIcon className="w-6 h-6" />
+                    <span className="text-[10px] font-mono">{stampError || 'No stamp yet.'}</span>
+                  </div>
+                )}
+              </div>
+
+              {stamp && (
+                <p className="text-[10px] font-mono text-neutral-500 italic line-clamp-3">{stamp.prompt}</p>
+              )}
+            </div>
+
+            {/* Live Area-Intel Agent Card */}
+            <div className="md:col-span-2 p-4 rounded-2xl bg-neutral-900 border border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-mono font-bold uppercase text-neutral-300 flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-emerald-400" />
+                  Live Area-Intel Agent (Google Places)
+                </h4>
+                <span
+                  className={`text-[10px] font-mono font-bold ${
+                    areaIntel?.isLive ? 'text-emerald-400' : 'text-amber-400'
+                  }`}
+                >
+                  {areaIntel?.isLive ? `⚡ LIVE • ${areaIntel.modelUsed}` : 'OFFLINE'}
+                </span>
+              </div>
+
+              {isLoadingAreaIntel ? (
+                <div className="py-8 flex flex-col items-center justify-center text-center space-y-2">
+                  <RefreshCw className="w-6 h-6 text-emerald-400 animate-spin" />
+                  <p className="font-mono text-xs text-neutral-400">Reading real Google Maps reviews nearby...</p>
+                </div>
+              ) : areaIntel?.profile ? (
+                <div className="space-y-3">
+                  <p className="text-xs text-neutral-300 font-sans leading-relaxed">
+                    {areaIntel.profile.overallVerdict}
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {areaIntel.profile.standoutSpots.slice(0, 4).map((s, i) => (
+                      <div key={i} className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-xs space-y-0.5">
+                        <div className="font-bold text-emerald-400">{s.name}</div>
+                        <div className="text-neutral-400">{s.why}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {areaIntel.profile.notableQuotes.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      {areaIntel.profile.notableQuotes.slice(0, 3).map((q, i) => (
+                        <div key={i} className="text-[11px] text-neutral-400 italic font-sans flex gap-1.5">
+                          <Quote className="w-3 h-3 text-emerald-500 shrink-0 mt-0.5" />
+                          <span>
+                            "{q.quote}" — <span className="text-neutral-500 not-italic">{q.placeName}</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs font-mono text-amber-300/80">
+                  {areaIntel?.reason ||
+                    'Add GOOGLE_MAPS_PLATFORM_KEY with Places API (New) enabled to activate live area intel.'}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* TWO COLUMN GRID: YouTube Walking Tour Video & Mock Map */}

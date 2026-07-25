@@ -83,3 +83,40 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
 }
+
+export interface AreaProfile {
+  vibeSummary: string;
+  safetyTake: string;
+  noiseTake: string;
+  foodAndDrinkScene: string;
+  walkabilityScore: number;
+  standoutSpots: { name: string; why: string }[];
+  notableQuotes: { placeName: string; quote: string }[];
+  overallVerdict: string;
+}
+
+export interface NearbyPlaceSummary {
+  name: string;
+  types: string[];
+  rating?: number;
+  userRatingCount?: number;
+  reviews: { authorName: string; rating?: number; text: string; relativeTime?: string }[];
+}
+
+export interface AreaIntelResponse {
+  listingId: string;
+  isLive: boolean;
+  reason?: string;
+  modelUsed?: string;
+  cachedAt?: number;
+  profile: AreaProfile | null;
+  nearbyPlaces: NearbyPlaceSummary[];
+}
+
+export interface AreaStampResponse {
+  listingId: string;
+  imageDataUrl: string;
+  prompt: string;
+  modelUsed: string;
+  cachedAt: number;
+}
